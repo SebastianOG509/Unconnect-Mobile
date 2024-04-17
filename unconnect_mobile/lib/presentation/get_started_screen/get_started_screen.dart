@@ -18,7 +18,7 @@ class GetStartedScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomImageView(
-                imagePath: ImageConstant.imgLogo2,
+                imagePath: ImageConstant.imgLogo1,
                 height: 533.v,
                 width: 360.h,
                 radius: BorderRadius.only(

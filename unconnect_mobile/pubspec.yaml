@@ -20,7 +20,7 @@ flutter:
   uses-material-design: true
   assets: 
     - assets/
-    - assets/images/img_logo_1.png
+    - assets/images/
   fonts: 
     - family: Inter
       fonts: 
