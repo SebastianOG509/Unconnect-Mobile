@@ -40,14 +40,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-class GraphQlConfiguration {
-  Future<GraphQLClient> clientToQuery() async {
-    final HttpLink httpLink = HttpLink('http://localhost:8000/graphql');
-
-    return GraphQLClient(
-      cache: GraphQLCache(),
-      link: httpLink,
-    );
-  }
-}
