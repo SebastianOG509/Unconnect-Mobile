@@ -30,11 +30,13 @@ class PostsScreen extends StatelessWidget {
         icons: [
           Icons.home,
           Icons.search,
+          Icons.post_add,
           Icons.person,
         ],
         routes: [
           AppRoutes.postsScreen,
           AppRoutes.postsScreen,
+          AppRoutes.mypostsScreen,
           AppRoutes.profileScreen,
         ],
       ),

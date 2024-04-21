@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../../widgets/custom_bottom_app_bar.dart';
 import '../../core/app_export.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:convert';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -41,11 +45,13 @@ class ProfileScreen extends StatelessWidget {
               icons: [
                 Icons.home,
                 Icons.search,
+                Icons.post_add,
                 Icons.person,
               ],
               routes: [
                 AppRoutes.postsScreen,
                 AppRoutes.postsScreen,
+                AppRoutes.mypostsScreen,
                 AppRoutes.profileScreen,
               ],
             ),
@@ -93,6 +99,9 @@ class ProfileScreen extends StatelessWidget {
           return Text('No se encontraron datos de usuario');
         }
 
+        // Obtener la URL de la foto de perfil o establecer la imagen predeterminada
+        final String profilePhoto = userData['ProfilePhoto'] ?? 'https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg';
+
         return SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -112,18 +121,21 @@ class ProfileScreen extends StatelessWidget {
                     Center(
                       child: CircleAvatar(
                         radius: 80,
-                        backgroundImage: NetworkImage('https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg'),
+                        backgroundImage: userData['ProfilePhoto'] != null && userData['ProfilePhoto'] != ""
+                            ? NetworkImage('http://10.0.2.2:8000/get-file?file_id=${userData['ProfilePhoto']}')
+                            : NetworkImage('https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg'),
                       ),
                     ),
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: IconButton(
-                        icon: Icon(Icons.edit),
-                        color: Colors.white,
-                        onPressed: () {
-                          // Acción al presionar el botón de editar
-                        },
+                          icon: Icon(Icons.edit),
+                          color: Colors.white,
+                          onPressed: () async {
+                            print(userData['ProfilePhoto']); // Imprimir ProfilePhoto en la consola
+                            await _selectImageAndUpload(context);
+                          }
                       ),
                     ),
                   ],
@@ -217,5 +229,87 @@ class ProfileScreen extends StatelessWidget {
     await prefs.clear(); // Borrar todos los datos de SharedPreferences
     print("Tokens Borrados");
     Navigator.pushReplacementNamed(context, AppRoutes.loginScreen); // Redirigir al inicio de sesión
+  }
+
+  Future<void> _selectImageAndUpload(context) async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedImage != null) {
+      File imageFile = File(pickedImage.path);
+      String token = await _getTokenFromSharedPreferences() ?? "";
+
+      try {
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('http://10.0.2.2:8000/upload-file/?token=$token'),
+        );
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'files',
+            imageFile.path,
+          ),
+        );
+        print('Multipart Request: ${request.toString()}');
+
+        var response = await request.send();
+        var responseData = await response.stream.bytesToString();
+
+        print('HTTP Status Code: ${response.statusCode}');
+        print('Response Body: $responseData');
+
+        if (response.statusCode == 200) {
+          // Extraer el ID del cuerpo de la respuesta
+          var jsonResponse = jsonDecode(responseData);
+          var profilePhotoId = jsonResponse['ids'][0];
+
+          // Realizar la mutación para actualizar el campo ProfilePhoto del perfil
+          await _updateProfilePhoto(context, profilePhotoId);
+        } else {
+          // Manejar la respuesta del servidor en caso de error
+          print('Error uploading file: $responseData');
+        }
+      } catch (error) {
+        // Manejar errores de red u otros errores de la solicitud
+        print('Error uploading file: $error');
+      }
+    }
+  }
+
+  Future<void> _updateProfilePhoto(BuildContext context, String profilePhoto) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+      print(prefs.getString('token'));
+
+      if (token != null) {
+        final MutationOptions options = MutationOptions(
+          document: gql('''
+          mutation UpdateProfilePhoto(\$token: String!, \$profilePhoto: String!) {
+            editUser(token: \$token, ProfilePhoto: \$profilePhoto) {
+              ProfilePhoto
+            }
+          }
+        '''),
+          variables: {
+            'token': token,
+            'profilePhoto': profilePhoto,
+          },
+        );
+
+        final QueryResult result = await GraphQLProvider.of(context).value.mutate(options);
+
+        if (result.hasException) {
+          print('Error: ${result.exception.toString()}');
+        } else {
+          print('Profile photo updated successfully');
+          Navigator.pushNamed(context, AppRoutes.profileScreen);
+        }
+      } else {
+        // Manejar caso en el que no se encuentre el token en SharedPreferences
+      }
+    } catch (error) {
+      print('Error updating profile photo: $error');
+    }
   }
 }

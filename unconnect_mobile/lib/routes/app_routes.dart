@@ -6,6 +6,8 @@ import '../presentation/register_screen/register_screen.dart';
 import '../presentation/dataregister_screen/dataregister_screen.dart';
 import '../presentation/posts_screen/posts_screen.dart';
 import '../presentation/profile_screen/profile_screen.dart';
+import '../presentation/myposts_screen/myposts_screen.dart';
+import '../presentation/createpost_screen/createpost_screen.dart';
 
 // ignore_for_file: must_be_immutable
 class AppRoutes {
@@ -20,6 +22,10 @@ class AppRoutes {
 
   static const String profileScreen = '/profile_screen';
 
+  static const String mypostsScreen = '/myposts_screen';
+
+  static const String createpostScreen = '/createpost_screen';
+
   static const String initialRoute = '/initialRoute';
 
   static Map<String, WidgetBuilder> routes = {
@@ -29,5 +35,7 @@ class AppRoutes {
     dataScreen: (context) => DataScreen(),
     postsScreen: (context) => PostsScreen(),
     profileScreen: (context) => ProfileScreen(),
+    mypostsScreen: (context) => MypostsScreen(),
+    createpostScreen: (context) => CreatepostScreen(),
   };
 }
