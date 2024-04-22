@@ -19,6 +19,12 @@ const String GET_MY_POSTS = r'''
   }
 ''';
 
+const String DELETE_POST = r'''
+  mutation deletePost($token: String!, $PostId: String!) {
+    deletePost(token: $token, PostId: $PostId)
+  }
+''';
+
 class MypostsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -148,7 +154,7 @@ class MypostsScreen extends StatelessWidget {
                                           IconButton(
                                             icon: Icon(Icons.delete),
                                             onPressed: () {
-                                              // Lógica para eliminar el post
+                                              _deletePost(context, token, post['Id']);
                                             },
                                           ),
                                         ],
@@ -163,7 +169,6 @@ class MypostsScreen extends StatelessWidget {
                       );
                     },
                   );
-
                 },
               );
             }
@@ -173,7 +178,7 @@ class MypostsScreen extends StatelessWidget {
       bottomNavigationBar: CustomBottomAppBar(
         icons: [
           Icons.home,
-          Icons.search,
+          Icons.group,
           Icons.post_add,
           Icons.person,
         ],
@@ -191,5 +196,26 @@ class MypostsScreen extends StatelessWidget {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     return token;
+  }
+
+  Future<void> _deletePost(BuildContext context, String token, String postId) async {
+    final MutationOptions options = MutationOptions(
+      document: gql(DELETE_POST),
+      variables: {
+        'token': token,
+        'PostId': postId,
+      },
+    );
+
+    final QueryResult result = await GraphQLProvider.of(context).value.mutate(options);
+
+    if (result.hasException) {
+      print('Error al eliminar el post: ${result.exception.toString()}');
+      // Manejar el error
+    } else {
+      print('Post eliminado exitosamente');
+      Navigator.pushNamed(context, AppRoutes.mypostsScreen);
+      // Actualizar la lista de posts o realizar otras acciones necesarias después de eliminar el post
+    }
   }
 }

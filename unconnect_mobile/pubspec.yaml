@@ -9,6 +9,7 @@ dependencies:
   graphql_flutter: ^5.1.2
   shared_preferences: ^2.2.3
   image_picker: ^1.1.0
+  multiple_images_picker: ^1.0.1
   flutter_localizations: 
     sdk: flutter
   cached_network_image: ^3.3.0

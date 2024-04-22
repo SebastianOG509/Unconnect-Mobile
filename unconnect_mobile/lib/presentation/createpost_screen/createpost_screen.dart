@@ -180,8 +180,6 @@ class _CreatepostScreenState extends State<CreatepostScreen> {
     }
   }
 
-
-
   Future<String?> _getTokenFromSharedPreferences() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');

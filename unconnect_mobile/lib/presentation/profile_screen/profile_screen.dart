@@ -44,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
             bottomNavigationBar: CustomBottomAppBar(
               icons: [
                 Icons.home,
-                Icons.search,
+                Icons.group,
                 Icons.post_add,
                 Icons.person,
               ],
