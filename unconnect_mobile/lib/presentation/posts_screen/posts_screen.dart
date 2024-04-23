@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/app_export.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/custom_bottom_app_bar.dart';
 
 class PostsScreen extends StatelessWidget {
@@ -29,13 +29,13 @@ class PostsScreen extends StatelessWidget {
       bottomNavigationBar: CustomBottomAppBar(
         icons: [
           Icons.home,
-          Icons.search,
+          Icons.groups,
           Icons.post_add,
           Icons.person,
         ],
         routes: [
           AppRoutes.postsScreen,
-          AppRoutes.postsScreen,
+          AppRoutes.groupstartScreen,
           AppRoutes.mypostsScreen,
           AppRoutes.profileScreen,
         ],

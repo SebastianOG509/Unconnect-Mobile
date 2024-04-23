@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../core/app_export.dart';
+import 'package:unconnect_mobile/core/app_export.dart';
+
+import '../../core/utils/image_constant.dart';
+import '../../widgets/custom_image_view.dart';
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({Key? key})

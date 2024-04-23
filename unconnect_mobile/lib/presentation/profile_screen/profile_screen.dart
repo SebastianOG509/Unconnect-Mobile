@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/custom_bottom_app_bar.dart';
-import '../../core/app_export.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
@@ -44,13 +44,13 @@ class ProfileScreen extends StatelessWidget {
             bottomNavigationBar: CustomBottomAppBar(
               icons: [
                 Icons.home,
-                Icons.search,
+                Icons.groups,
                 Icons.post_add,
                 Icons.person,
               ],
               routes: [
                 AppRoutes.postsScreen,
-                AppRoutes.postsScreen,
+                AppRoutes.groupstartScreen,
                 AppRoutes.mypostsScreen,
                 AppRoutes.profileScreen,
               ],

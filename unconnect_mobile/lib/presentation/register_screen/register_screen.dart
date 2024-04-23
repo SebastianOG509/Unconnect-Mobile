@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import '../../core/app_export.dart';
+import 'package:unconnect_mobile/core/app_export.dart';
+import '../../core/utils/image_constant.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/custom_image_view.dart';
 import '../../widgets/custom_text_form_field.dart';
 
 class RegisterScreen extends StatelessWidget {
@@ -159,9 +161,53 @@ class RegisterScreen extends StatelessWidget {
     if (result.hasException) {
       print('Error: ${result.exception.toString()}');
     } else {
-      print('Usuario registrado exitosamente: ${result.data}');
-      Navigator.pushNamed(context, AppRoutes.loginScreen);
-      // Aquí puedes manejar la navegación a otra pantalla u otra acción luego del registro exitoso
+      final dynamic userData = result.data?['createAuthUser'];
+      if (userData != null) {
+        final String? token = userData['id'];
+        if (token != null) {
+          print('Usuario registrado exitosamente con ID: $token');
+          await _createPersonGroup(context, token);
+        } else {
+          print('Error: ID de usuario no encontrado en el resultado del registro');
+        }
+      } else {
+        print('Error: Datos de usuario no encontrados en el resultado del registro');
+      }
+    }
+  }
+
+  Future<void> _createPersonGroup(BuildContext context, String token) async {
+    print('ID de usuario en createPersonGroup: $token');
+    final GraphQLClient client = GraphQLProvider.of(context).value;
+
+    final MutationOptions createPersonOptions = MutationOptions(
+      document: gql('''
+    mutation CreatePersonGroup(\$token: String!) {
+      createPersonGroup(token: \$token) {
+        id
+        userId
+      }
+    }
+  '''),
+      variables: {
+        'token': token,
+      },
+    );
+
+    final QueryResult result = await client.mutate(createPersonOptions);
+
+    if (result.hasException) {
+      print('Error creando persona: ${result.exception.toString()}');
+    } else {
+      final dynamic personData = result.data?['createPersonGroup'];
+      if (personData != null) {
+        print('Persona creada exitosamente: $personData');
+        Navigator.pushNamed(context, AppRoutes.loginScreen);
+        // Aquí puedes manejar la navegación a otra pantalla u otra acción luego del registro exitoso
+      } else {
+        print(
+            'Error: Datos de persona no encontrados en el resultado de createPersonGroup');
+      }
     }
   }
 }

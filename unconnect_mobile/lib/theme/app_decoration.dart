@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_export.dart';
+import 'package:unconnect_mobile/core/app_export.dart';
+import 'package:unconnect_mobile/theme/theme_helper.dart';
 
 class AppDecoration {
   // Fill decorations

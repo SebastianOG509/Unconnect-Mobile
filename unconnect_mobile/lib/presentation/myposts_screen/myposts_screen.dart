@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import '../../core/app_export.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/custom_bottom_app_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +14,7 @@ const String GET_MY_POSTS = r'''
         Id
         Content
         Media
+        GroupId
       }
     }
   }
@@ -173,13 +174,13 @@ class MypostsScreen extends StatelessWidget {
       bottomNavigationBar: CustomBottomAppBar(
         icons: [
           Icons.home,
-          Icons.search,
+          Icons.groups,
           Icons.post_add,
           Icons.person,
         ],
         routes: [
           AppRoutes.postsScreen,
-          AppRoutes.postsScreen,
+          AppRoutes.groupstartScreen,
           AppRoutes.mypostsScreen,
           AppRoutes.profileScreen,
         ],

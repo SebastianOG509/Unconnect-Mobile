@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_export.dart';
+import 'package:unconnect_mobile/theme/theme_helper.dart';
 
 extension on TextStyle {
   TextStyle get inter {

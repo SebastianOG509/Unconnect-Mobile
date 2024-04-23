@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../core/app_export.dart';
+import 'package:unconnect_mobile/core/app_export.dart';
 
 String _appTheme = "primary";
 PrimaryColors get appTheme => ThemeHelper().themeColor();
