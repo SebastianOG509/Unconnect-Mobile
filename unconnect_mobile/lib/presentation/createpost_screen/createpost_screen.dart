@@ -169,6 +169,12 @@ class _CreatepostScreenState extends State<CreatepostScreen> {
           setState(() {
             _mediaIds.addAll(mediaIds);
           });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Imagen cargada'),
+              duration: Duration(seconds: 2), // Duración del mensaje
+            ),
+          );
         } else {
           // Manejar la respuesta del servidor en caso de error
           print('Error uploading file: $responseData');

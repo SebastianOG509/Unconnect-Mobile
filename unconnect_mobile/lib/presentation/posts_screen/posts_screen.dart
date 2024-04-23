@@ -32,24 +32,13 @@ const String CREATE_COMMENT = r'''
 	}
 ''';
 
-const String UPDATE_COMMENT = r'''
-	mutation UpdateComment($token: String!, $commentId: String!, $content: String!) {
-		updateComment(token: $token, CommentId: $commentId, Content: $content) {
-			Id
-			Content
-			UserId
-			PostId
-		}
-	}
-''';
-
 const String DELETE_COMMENT = r'''
 	mutation deletecomment(
 		$token: String!
 		$postId: String!
 		$commentId: String!
 	) {
-		deleteComment(token: $token, PostId: $postId, CommentId: $commentId)
+		deletecomment(token: $token, PostId: $postId, CommentId: $commentId)
 	}
 ''';
 
@@ -65,6 +54,50 @@ const String GET_FEED = r'''
 				Media
 				UserId
 			}
+		}
+	}
+''';
+
+const String GET_LIKES_BY_POST = r'''
+	query getLikebyPost($PostId: String!, $page: Int!) {
+		getLikebyPost(PostId: $PostId, page: $page) {
+			currentPage
+			totalPages
+			totalCount
+			items {
+				Id
+				type
+				UserId
+				PostId
+			}
+		}
+	}
+''';
+
+const String CREATE_LIKE = r'''
+	mutation CreateLike($token: String!, $postId: String!, $type: String!) {
+		createLike(token: $token, PostId: $postId, type: $type) {
+			Id
+			type
+			UserId
+			PostId
+		}
+	}
+''';
+
+const String DELETE_LIKE = r'''
+	mutation DeleteLike($token: String!, $postId: String!) {
+		deleteLike(token: $token, PostId: $postId)
+	}
+''';
+
+const String UPDATE_LIKE = r'''
+	mutation UpdateLike($token: String!, $postId: String!, $type: String!) {
+		updateLike(token: $token, PostId: $postId, type: $type) {
+			Id
+			type
+			UserId
+			PostId
 		}
 	}
 ''';
@@ -103,7 +136,15 @@ class PostsScreen extends StatelessWidget {
   }
 }
 
-class PostList extends StatelessWidget {
+class PostList extends StatefulWidget {
+  @override
+  _PostListState createState() => _PostListState();
+}
+
+class _PostListState extends State<PostList> {
+  // Variable de estado para controlar si se ha dado like o no
+  bool _isLiked = false;
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String?>(
@@ -177,10 +218,20 @@ class PostList extends StatelessWidget {
                               SizedBox(height: 8.0), // Añadir un espacio entre la imagen y el texto
                               Padding(
                                 padding: EdgeInsets.only(left: 10.0),
-                                child: Text(
-                                  post['Content'],
-                                  style: TextStyle(fontSize: 16.0),
-                                  textAlign: TextAlign.left,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        post['Content'],
+                                        style: TextStyle(fontSize: 16.0),
+                                        textAlign: TextAlign.left,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: _isLiked ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border), // Icono de "like" pintado de rojo si está liked
+                                      onPressed: () => _likePost(context, token, post['Id']), // Función para manejar el clic en el icono de "like"
+                                    ),
+                                  ],
                                 ),
                               ),
                               // Mostrar los comentarios
@@ -188,6 +239,7 @@ class PostList extends StatelessWidget {
                             ],
                           ),
                         ),
+
                       ],
                     );
                   },
@@ -199,6 +251,7 @@ class PostList extends StatelessWidget {
       },
     );
   }
+
 
   Widget _buildCommentList(BuildContext context, String token, String postId) {
     return Query(
@@ -265,9 +318,6 @@ class PostList extends StatelessWidget {
     );
   }
 
-
-
-
   Widget _buildCommentWidget(BuildContext context, String token, dynamic comment) {
     return ListTile(
       title: Text(comment['Content']),
@@ -276,78 +326,13 @@ class PostList extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () => _editComment(context, token, comment),
-          ),
-          IconButton(
             icon: Icon(Icons.delete),
             onPressed: () => _deleteComment(context, token, comment),
+
           ),
         ],
       ),
     );
-  }
-
-
-  void _editComment(BuildContext context, String token, dynamic comment) async {
-    final result = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        final TextEditingController _controller = TextEditingController(text: comment['Content']);
-        return AlertDialog(
-          title: Text('Editar Comentario'),
-          content: TextField(
-            controller: _controller,
-            decoration: InputDecoration(hintText: 'Ingrese el nuevo comentario'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(_controller.text);
-              },
-              child: Text('Guardar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(null);
-              },
-              child: Text('Cancelar'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result != null) {
-      // El usuario confirmó la edición del comentario
-      final MutationOptions options = MutationOptions(
-        document: gql(UPDATE_COMMENT),
-        variables: {
-          'token': token,
-          'commentId': comment['Id'],
-          'content': result,
-        },
-      );
-
-      final QueryResult mutationResult = await GraphQLProvider.of(context).value.mutate(options);
-
-      if (mutationResult.hasException) {
-        final errorMessage = mutationResult.exception.toString();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al editar el comentario: $errorMessage'),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Comentario editado exitosamente'),
-          ),
-        );
-        // Actualizar la lista de comentarios
-        // Puedes implementar esta lógica según cómo actualizas la lista en tu aplicación
-      }
-    }
   }
 
   void _deleteComment(BuildContext context, String token, dynamic comment) async {
@@ -376,10 +361,12 @@ class PostList extends StatelessWidget {
           content: Text('Comentario eliminado exitosamente'),
         ),
       );
-      // Actualizar la lista de comentarios
-      // Puedes implementar esta lógica según cómo actualizas la lista en tu aplicación
+
+      // Enviar al usuario de vuelta a la vista PostsScreen
+      Navigator.pushReplacementNamed(context, AppRoutes.postsScreen);
     }
   }
+
 
   void _addComment(BuildContext context, String token, String postId) async {
     final result = await showDialog(
@@ -436,11 +423,71 @@ class PostList extends StatelessWidget {
             content: Text('Comentario agregado exitosamente'),
           ),
         );
-        // Actualizar la lista de comentarios
-        // Puedes implementar esta lógica según cómo actualizas la lista en tu aplicación
+
+        // Enviar al usuario de vuelta a la vista PostsScreen
+        Navigator.pushReplacementNamed(context, AppRoutes.postsScreen);
       }
     }
   }
+
+  void _likePost(BuildContext context, String token, String postId) async {
+    final QueryResult result = await GraphQLProvider.of(context).value.query(
+      QueryOptions(
+        document: gql(GET_LIKES_BY_POST),
+        variables: {'PostId': postId, 'page': 0},
+      ),
+    );
+
+    List<dynamic> likes = [];
+
+    if (result.hasException) {
+      final errorMessage = result.exception.toString();
+
+      return;
+    } else if (result.data?['getLikebyPost'] != null) {
+      likes = result.data?['getLikebyPost']['items'] ?? [];
+    }
+
+    // Verificar si likes es nulo o vacío antes de usarlo en la condición
+    final liked = likes.any((like) => like['UserId'] == token);
+
+    // Si el usuario ya le dio "like", se elimina el "like", de lo contrario se crea
+    final MutationOptions options = liked
+        ? MutationOptions(
+      document: gql(DELETE_LIKE),
+      variables: {'token': token, 'postId': postId},
+    )
+        : MutationOptions(
+      document: gql(CREATE_LIKE),
+      variables: {'token': token, 'postId': postId, 'type': 'like'},
+    );
+
+    final QueryResult mutationResult = await GraphQLProvider.of(context).value.mutate(options);
+
+    if (mutationResult.hasException) {
+      final errorMessage = mutationResult.exception.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al procesar el like: $errorMessage'),
+        ),
+      );
+      return;
+    }
+
+    // Actualizar el estado _isLiked después de la mutación
+    setState(() {
+      _isLiked = !liked; // Cambiar el estado según si ya le dio like o no
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(liked ? 'Like eliminado' : 'Like agregado'),
+      ),
+    );
+  }
+
+
+
 
 
   Future<String?> _getTokenFromSharedPreferences() async {
