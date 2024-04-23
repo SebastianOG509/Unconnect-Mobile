@@ -16,12 +16,12 @@ class CreatepostScreen extends StatefulWidget {
 
 class _CreatepostScreenState extends State<CreatepostScreen> {
   final TextEditingController _contentController = TextEditingController();
-
+  int? groupId; // Declara groupId como nullable
   List<String> _mediaIds = [];
-
 
   @override
   Widget build(BuildContext context) {
+    groupId ??= _getGroupIdFromArgs(context); // Asigna el valor solo si es null
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -133,7 +133,6 @@ class _CreatepostScreenState extends State<CreatepostScreen> {
     }
   }
 
-
   Future<void> _selectImageAndUpload(BuildContext context) async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
@@ -181,7 +180,16 @@ class _CreatepostScreenState extends State<CreatepostScreen> {
     }
   }
 
-
+  int _getGroupIdFromArgs(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is int) {
+      return args;
+    } else if (args is String) {
+      return int.tryParse(args) ?? 0;
+    } else {
+      return 0;
+    }
+  }
 
   Future<String?> _getTokenFromSharedPreferences() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
